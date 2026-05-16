@@ -27,7 +27,15 @@ export class PriorityQueue<T> extends AbstractQueue<T> implements Queue<T> {
   }
 
   override offer(element: T): boolean {
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "offer",
+        "priority queue element",
+        element,
+        this.heap.length,
+      ),
+    );
     this.heap.push(element);
     this.siftUp(this.heap.length - 1);
     return true;

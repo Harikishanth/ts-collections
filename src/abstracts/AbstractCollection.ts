@@ -1,5 +1,11 @@
 import type { Iterator, Collection } from "../interfaces";
-import { z, type ZodSchema } from "zod";
+import { type ZodSchema } from "zod";
+import {
+  createCollectionValidationError,
+  describeValidationValue,
+  toValidationError,
+  type ValidationContext,
+} from "../utils/validation";
 
 /**
  * Options for runtime type validation in collections.
@@ -109,6 +115,21 @@ export abstract class AbstractCollection<E> implements Collection<E> {
   protected schema?: ZodSchema<E>;
   protected strict: boolean = true; // ✓ DEFAULT: Type safety is ON (like Java)
   protected inferredType?: string;
+
+  protected createValidationContext(
+    operation: string,
+    targetDescription: string,
+    targetValue: unknown,
+    sizeBefore?: number,
+  ): ValidationContext {
+    return {
+      collectionType: this.constructor.name,
+      operation,
+      targetDescription,
+      targetValue,
+      ...(sizeBefore === undefined ? {} : { sizeBefore }),
+    };
+  }
 
   /**
    * Initializes the collection with optional type validation settings.
@@ -287,25 +308,29 @@ export abstract class AbstractCollection<E> implements Collection<E> {
    * @param element The element to validate
    * @throws {TypeError} If type validation fails
    */
-  protected validateElementType(element: unknown): void {
+  protected validateElementType(
+    element: unknown,
+    context?: ValidationContext,
+  ): void {
     // Only validate if strict mode is enabled
     if (!this.strict) {
       return;
     }
+
+    const validationContext =
+      context ??
+      this.createValidationContext("validate", "element", element, this.size());
 
     // Zod schema takes highest precedence (for power users)
     if (this.schema) {
       try {
         this.schema.parse(element);
       } catch (error) {
-        if (error instanceof z.ZodError) {
-          const issues = error.issues
-            .map(issue => {
-              const path = issue.path.length > 0 ? `${issue.path.join('.')}` : 'root';
-              return `${path}: ${issue.message}`;
-            })
-            .join('; ');
-          throw new TypeError(`Validation failed: ${issues}`);
+        if (error instanceof Error) {
+          throw createCollectionValidationError(
+            toValidationError(error),
+            validationContext,
+          );
         }
         throw error;
       }
@@ -316,7 +341,7 @@ export abstract class AbstractCollection<E> implements Collection<E> {
     if (this.typeValidator) {
       if (!this.typeValidator(element)) {
         throw new TypeError(
-          'Type validation failed: element does not match the expected type'
+          `${validationContext.collectionType}.${validationContext.operation}() validation failed: Expected value matching custom validator for ${validationContext.targetDescription}, but got ${describeValidationValue(element)}`
         );
       }
       return;
@@ -333,7 +358,7 @@ export abstract class AbstractCollection<E> implements Collection<E> {
       const elementType = this.getTypeString(element);
       if (elementType !== this.inferredType) {
         throw new TypeError(
-          `Type mismatch: expected ${this.inferredType}, but got ${elementType}`
+          `${validationContext.collectionType}.${validationContext.operation}() validation failed: Expected ${this.inferredType} for ${validationContext.targetDescription}, but got ${describeValidationValue(element)}`
         );
       }
     }

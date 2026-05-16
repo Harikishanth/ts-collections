@@ -60,7 +60,15 @@ export class LinkedList<T> extends AbstractList<T> implements List<T> {
    * @returns true if added.
    */
   override add(element: T): boolean {
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "add",
+        `element at index ${this.elementCount}`,
+        element,
+        this.elementCount,
+      ),
+    );
     this.addLast(element);
     return true;
   }
@@ -70,7 +78,15 @@ export class LinkedList<T> extends AbstractList<T> implements List<T> {
    * @param element Element to add.
    */
   override addFirst(element: T): void {
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "addFirst",
+        "element at the front of the list",
+        element,
+        this.elementCount,
+      ),
+    );
     const newNode: Node<T> = {
       value: element,
       previous: null,
@@ -94,7 +110,15 @@ export class LinkedList<T> extends AbstractList<T> implements List<T> {
    * @param element Element to add.
    */
   override addLast(element: T): void {
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "addLast",
+        "element at the end of the list",
+        element,
+        this.elementCount,
+      ),
+    );
     const newNode: Node<T> = {
       value: element,
       previous: this.tail,
@@ -219,7 +243,15 @@ export class LinkedList<T> extends AbstractList<T> implements List<T> {
    */
   override set(index: number, element: T): T {
     this.checkIndex(index);
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "set",
+        `element at index ${index}`,
+        element,
+        this.elementCount,
+      ),
+    );
     const node = this.getNode(index);
     if (node === null) {
       throw new Error(`Element at index ${index} is undefined`);
@@ -240,7 +272,15 @@ export class LinkedList<T> extends AbstractList<T> implements List<T> {
       throw new Error(`Index out of bounds: ${index}`);
     }
 
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "addAt",
+        `element at index ${index}`,
+        element,
+        this.elementCount,
+      ),
+    );
 
     if (index === this.elementCount) {
       // Insert at end
