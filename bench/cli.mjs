@@ -74,12 +74,22 @@ if (args.includes("--help")) {
   process.exit(0);
 }
 
+// Fail fast on unknown flags to catch typos before running benchmarks
+const KNOWN_FLAGS = new Set(["--help", "--compare", "--operation", "--size", "--format"]);
+const unknownFlags = args.filter((a) => a.startsWith("--") && !KNOWN_FLAGS.has(a));
+if (unknownFlags.length > 0) {
+  console.error(`Error: Unknown flag(s): ${unknownFlags.join(", ")}`);
+  showHelp();
+  process.exit(1);
+}
+
 const compareFilter = getFlagValues("--compare");
 const operationFilter = getFlag("--operation");
-const size = parseInt(getFlag("--size") ?? "1000", 10);
+const rawSize = getFlag("--size");
+const size = rawSize != null ? Number(rawSize) : 1000;
 const format = getFlag("--format") ?? "table";
 
-if (isNaN(size) || size <= 0) {
+if (!Number.isInteger(size) || size <= 0) {
   console.error("Error: --size must be a positive integer.");
   process.exit(1);
 }
