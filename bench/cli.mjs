@@ -8,16 +8,23 @@ const args = process.argv.slice(2);
 
 /**
  * Returns the value of a single-value flag, e.g. --format json → "json"
+ * Fails fast if the flag is present but has no value or the next token is another flag.
  */
 function getFlag(flag) {
   const idx = args.indexOf(flag);
-  if (idx === -1 || idx + 1 >= args.length) return null;
-  return args[idx + 1];
+  if (idx === -1) return null;
+  const next = args[idx + 1];
+  if (next === undefined || next.startsWith("--")) {
+    console.error(`Error: ${flag} requires a value.`);
+    process.exit(1);
+  }
+  return next;
 }
 
 /**
  * Returns all values after a flag until the next flag or end of args.
  * e.g. --compare ArrayList LinkedList → ["ArrayList", "LinkedList"]
+ * Fails fast if no values follow the flag.
  */
 function getFlagValues(flag) {
   const idx = args.indexOf(flag);
@@ -26,6 +33,10 @@ function getFlagValues(flag) {
   for (let i = idx + 1; i < args.length; i++) {
     if (args[i].startsWith("--")) break;
     values.push(args[i]);
+  }
+  if (values.length === 0) {
+    console.error(`Error: ${flag} requires at least one value.`);
+    process.exit(1);
   }
   return values;
 }
@@ -113,17 +124,13 @@ if (filtered.length === 0) {
 
 // ── Run benchmarks ─────────────────────────────────────────────────────────
 
-console.log(`\nRunning ${filtered.length} benchmark(s) with size=${size}...\n`);
+// Use stderr so progress messages don't pollute --format json/csv output
+console.error(`\nRunning ${filtered.length} benchmark(s) with size=${size}...\n`);
 
 const bench = new Bench({ time: 200 });
 
 for (const scenario of filtered) {
-  const label = `${scenario.name} ${scenario.operation}`;
-  const beforeHeap = process.memoryUsage().heapUsed;
-  bench.add(label, scenario.fn(size));
-  const afterHeap = process.memoryUsage().heapUsed;
-  // Store memory delta on the scenario for reporting
-  scenario._memDelta = Math.max(0, afterHeap - beforeHeap);
+  bench.add(`${scenario.name} ${scenario.operation}`, scenario.fn(size));
 }
 
 await bench.run();
@@ -132,7 +139,7 @@ await bench.run();
 
 const fmt = (n) => Math.round(n).toLocaleString("en-US");
 
-const results = bench.tasks.map((task, idx) => {
+const results = bench.tasks.map((task) => {
   const lat = task.result?.latency;
   const tput = task.result?.throughput;
   return {
@@ -141,7 +148,6 @@ const results = bench.tasks.map((task, idx) => {
     "ops/sec (median)": tput?.p50 != null ? fmt(tput.p50) : "N/A",
     "latency avg (ms)": lat?.mean != null ? lat.mean.toFixed(4) : "N/A",
     "latency p99 (ms)": lat?.p99 != null ? lat.p99.toFixed(4) : "N/A",
-    "mem delta (bytes)": filtered[idx]?._memDelta ?? 0,
   };
 });
 

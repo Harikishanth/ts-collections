@@ -155,10 +155,10 @@ export const scenarios = [
   {
     name: "HashSet",
     operation: "remove",
-    fn: (size) => {
+    fn: (size) => () => {
       const set = new HashSet();
       for (let i = 0; i < size; i++) set.add(i);
-      return () => set.remove(size - 1);
+      set.remove(size - 1);
     },
   },
 
