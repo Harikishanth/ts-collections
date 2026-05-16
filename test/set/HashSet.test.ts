@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { z } from "zod";
 import { HashSet } from "../../src/set/HashSet";
 import { describeSet } from "../interfaces/Set";
 
@@ -70,6 +71,34 @@ describe("HashSet - Core Methods", () => {
       expect(set.add(2)).toBe(true);
       expect(set.add(3)).toBe(true);
       expect(set.size()).toBe(3);
+    });
+
+    it("should report contextual validation failures with the original Zod cause", () => {
+      const strictSet = new HashSet<number>({
+        schema: z.number().int(),
+      });
+
+      let thrownError: unknown;
+
+      try {
+        strictSet.add("text" as any);
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toBeInstanceOf(TypeError);
+      expect((thrownError as Error).message).toContain(
+        "HashSet.add() validation failed",
+      );
+      expect((thrownError as Error).message).toContain(
+        "Expected number for set element, but got string \"text\"",
+      );
+      expect((thrownError as Error).message).toContain(
+        "size before operation: 0",
+      );
+      const cause = (thrownError as Error & { cause?: unknown }).cause;
+      expect(cause).toBeInstanceOf(Error);
+      expect((cause as Error).name).toBe("ZodError");
     });
 
     it("should maintain uniqueness when adding many duplicates", () => {

@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { z } from "zod";
 import { ArrayList } from "../../src/list/ArrayList";
 import { describeList } from "../interfaces/List";
 
@@ -71,6 +72,34 @@ describe("ArrayList - Core Methods", () => {
       expect(list.add(1)).toBe(true);
       expect(list.add(2)).toBe(true);
       expect(list.add(3)).toBe(true);
+    });
+
+    it("should report contextual validation failures with the original Zod cause", () => {
+      const strictList = new ArrayList<number>({
+        schema: z.number().int(),
+      });
+
+      let thrownError: unknown;
+
+      try {
+        strictList.add("text" as any);
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toBeInstanceOf(TypeError);
+      expect((thrownError as Error).message).toContain(
+        "ArrayList.add() validation failed",
+      );
+      expect((thrownError as Error).message).toContain(
+        "Expected number for element at index 0, but got string \"text\"",
+      );
+      expect((thrownError as Error).message).toContain(
+        "size before operation: 0",
+      );
+      const cause = (thrownError as Error & { cause?: unknown }).cause;
+      expect(cause).toBeInstanceOf(Error);
+      expect((cause as Error).name).toBe("ZodError");
     });
   });
 

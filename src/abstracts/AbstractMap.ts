@@ -1,5 +1,11 @@
-import { type ZodSchema, z } from "zod";
+import { type ZodSchema } from "zod";
 import type { Collection, Iterator, Map as MapInterface } from "../interfaces";
+import {
+  createCollectionValidationError,
+  describeValidationValue,
+  toValidationError,
+  type ValidationContext,
+} from "../utils/validation";
 
 /**
  * Options for runtime type validation in maps.
@@ -106,6 +112,21 @@ export abstract class AbstractMap<K, V> implements MapInterface<K, V> {
   protected strict: boolean = true; // ✓ DEFAULT: Type safety is ON (like Java)
   protected inferredKeyType?: string;
   protected inferredValueType?: string;
+
+  protected createValidationContext(
+    operation: string,
+    targetDescription: string,
+    targetValue: unknown,
+    sizeBefore?: number,
+  ): ValidationContext {
+    return {
+      collectionType: this.constructor.name,
+      operation,
+      targetDescription,
+      targetValue,
+      ...(sizeBefore === undefined ? {} : { sizeBefore }),
+    };
+  }
 
   /**
    * Initializes the map with optional type validation settings.
@@ -386,26 +407,25 @@ export abstract class AbstractMap<K, V> implements MapInterface<K, V> {
    * @param key The key to validate
    * @throws {TypeError} If key validation fails
    */
-  protected validateKeyType(key: unknown): void {
+  protected validateKeyType(key: unknown, context?: ValidationContext): void {
     // Only validate if strict mode is enabled
     if (!this.strict) {
       return;
     }
+
+    const validationContext =
+      context ?? this.createValidationContext("validate", "key", key, this.size());
 
     // Zod schema takes highest precedence (for power users)
     if (this.keySchema) {
       try {
         this.keySchema.parse(key);
       } catch (error) {
-        if (error instanceof z.ZodError) {
-          const issues = error.issues
-            .map((issue) => {
-              const path =
-                issue.path.length > 0 ? `${issue.path.join(".")}` : "root";
-              return `${path}: ${issue.message}`;
-            })
-            .join("; ");
-          throw new TypeError(`Key validation failed: ${issues}`);
+        if (error instanceof Error) {
+          throw createCollectionValidationError(
+            toValidationError(error),
+            validationContext,
+          );
         }
         throw error;
       }
@@ -416,7 +436,7 @@ export abstract class AbstractMap<K, V> implements MapInterface<K, V> {
     if (this.keyValidator) {
       if (!this.keyValidator(key)) {
         throw new TypeError(
-          "Key validation failed: key does not match the expected type",
+          `${validationContext.collectionType}.${validationContext.operation}() validation failed: Expected value matching custom validator for ${validationContext.targetDescription}, but got ${describeValidationValue(key)}`,
         );
       }
       return;
@@ -429,7 +449,7 @@ export abstract class AbstractMap<K, V> implements MapInterface<K, V> {
       const keyType = this.getTypeString(key);
       if (keyType !== this.inferredKeyType) {
         throw new TypeError(
-          `Key type mismatch: expected ${this.inferredKeyType}, but got ${keyType}`,
+          `${validationContext.collectionType}.${validationContext.operation}() validation failed: Expected ${this.inferredKeyType} for ${validationContext.targetDescription}, but got ${describeValidationValue(key)}`,
         );
       }
     }
@@ -447,26 +467,25 @@ export abstract class AbstractMap<K, V> implements MapInterface<K, V> {
    * @param value The value to validate
    * @throws {TypeError} If value validation fails
    */
-  protected validateValueType(value: unknown): void {
+  protected validateValueType(value: unknown, context?: ValidationContext): void {
     // Only validate if strict mode is enabled
     if (!this.strict) {
       return;
     }
+
+    const validationContext =
+      context ?? this.createValidationContext("validate", "value", value, this.size());
 
     // Zod schema takes highest precedence (for power users)
     if (this.valueSchema) {
       try {
         this.valueSchema.parse(value);
       } catch (error) {
-        if (error instanceof z.ZodError) {
-          const issues = error.issues
-            .map((issue) => {
-              const path =
-                issue.path.length > 0 ? `${issue.path.join(".")}` : "root";
-              return `${path}: ${issue.message}`;
-            })
-            .join("; ");
-          throw new TypeError(`Value validation failed: ${issues}`);
+        if (error instanceof Error) {
+          throw createCollectionValidationError(
+            toValidationError(error),
+            validationContext,
+          );
         }
         throw error;
       }
@@ -477,7 +496,7 @@ export abstract class AbstractMap<K, V> implements MapInterface<K, V> {
     if (this.valueValidator) {
       if (!this.valueValidator(value)) {
         throw new TypeError(
-          "Value validation failed: value does not match the expected type",
+          `${validationContext.collectionType}.${validationContext.operation}() validation failed: Expected value matching custom validator for ${validationContext.targetDescription}, but got ${describeValidationValue(value)}`,
         );
       }
       return;
@@ -490,7 +509,7 @@ export abstract class AbstractMap<K, V> implements MapInterface<K, V> {
       const valueType = this.getTypeString(value);
       if (valueType !== this.inferredValueType) {
         throw new TypeError(
-          `Value type mismatch: expected ${this.inferredValueType}, but got ${valueType}`,
+          `${validationContext.collectionType}.${validationContext.operation}() validation failed: Expected ${this.inferredValueType} for ${validationContext.targetDescription}, but got ${describeValidationValue(value)}`,
         );
       }
     }

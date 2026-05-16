@@ -27,7 +27,15 @@ export class TreeSet<T> extends AbstractSet<T> implements NavigableSet<T> {
   }
 
   override add(element: T): boolean {
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "add",
+        "set element",
+        element,
+        this.orderedValues.length,
+      ),
+    );
 
     const index = this.findIndex(element);
     if (index >= 0) {

@@ -41,7 +41,15 @@ export class LinkedQueue<T> extends AbstractQueue<T> implements Queue<T> {
    * @returns true if the element was added to this queue, else false
    */
   override offer(element: T): boolean {
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "offer",
+        "queue element",
+        element,
+        this.elementCount,
+      ),
+    );
     const newNode: Node<T> = { value: element, next: null };
 
     if (this.tail === null) {

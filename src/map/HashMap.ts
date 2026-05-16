@@ -5,6 +5,7 @@ import {
 import type { Collection } from "../interfaces/Collection";
 import type { Iterator } from "../interfaces/Iterator";
 import type { Map as MapInterface } from "../interfaces/Map";
+import { formatValidationContextValue } from "../utils/validation";
 
 /**
  * A hash-based Map implementation using native JavaScript Map.
@@ -49,8 +50,24 @@ export class HashMap<K, V>
    * @returns The previous value associated with the key, or undefined if there was no mapping
    */
   override put(key: K, value: V): V | undefined {
-    this.validateKeyType(key);
-    this.validateValueType(value);
+    this.validateKeyType(
+      key,
+      this.createValidationContext(
+        "put",
+        `key ${formatValidationContextValue(key)}`,
+        key,
+        this.size(),
+      ),
+    );
+    this.validateValueType(
+      value,
+      this.createValidationContext(
+        "put",
+        `value for key ${formatValidationContextValue(key)}`,
+        value,
+        this.size(),
+      ),
+    );
     const oldValue = this.mapEntries.get(key);
     this.mapEntries.set(key, value);
     return oldValue;

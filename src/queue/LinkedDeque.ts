@@ -24,12 +24,28 @@ export class LinkedDeque<T> extends AbstractDeque<T> implements Deque<T> {
   }
 
   override addFirst(element: T): void {
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "addFirst",
+        "deque element at the front",
+        element,
+        this.size(),
+      ),
+    );
     this.list.addFirst(element);
   }
 
   override addLast(element: T): void {
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "addLast",
+        "deque element at the back",
+        element,
+        this.size(),
+      ),
+    );
     this.list.addLast(element);
   }
 
