@@ -44,7 +44,15 @@ export class HashSet<T> extends AbstractSet<T> implements Set<T> {
    * @returns true if this set did not already contain the specified element
    */
   override add(element: T): boolean {
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "add",
+        "set element",
+        element,
+        this.elements.size,
+      ),
+    );
     const sizeBefore = this.elements.size;
     this.elements.add(element);
     return this.elements.size > sizeBefore;

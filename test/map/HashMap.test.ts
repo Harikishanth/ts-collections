@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { z } from "zod";
 import { HashMap } from "../../src/map/HashMap";
 import { describeMap } from "../interfaces/Map";
 
@@ -89,6 +90,35 @@ describe("HashMap - Core Methods", () => {
       map.put("a", 100);
       expect(map.get("a")).toBe(100);
       expect(map.size()).toBe(1);
+    });
+
+    it("should report contextual validation failures with the original Zod cause", () => {
+      const strictMap = new HashMap<string, number>({
+        keySchema: z.string().min(1),
+        valueSchema: z.number().int(),
+      });
+
+      let thrownError: unknown;
+
+      try {
+        strictMap.put(123 as any, "text" as any);
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toBeInstanceOf(TypeError);
+      expect((thrownError as Error).message).toContain(
+        "HashMap.put() validation failed",
+      );
+      expect((thrownError as Error).message).toContain(
+        "Expected string for key 123, but got number 123",
+      );
+      expect((thrownError as Error).message).toContain(
+        "size before operation: 0",
+      );
+      const cause = (thrownError as Error & { cause?: unknown }).cause;
+      expect(cause).toBeInstanceOf(Error);
+      expect((cause as Error).name).toBe("ZodError");
     });
   });
 

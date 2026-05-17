@@ -5,6 +5,7 @@ import {
 import type { Collection } from "../interfaces/Collection";
 import type { Iterator } from "../interfaces/Iterator";
 import type { NavigableMap } from "../interfaces/NavigableMap";
+import { formatValidationContextValue } from "../utils/validation";
 
 export interface TreeMapOptions<K, V> extends MapTypeValidationOptions<K, V> {
   comparator?: (a: K, b: K) => number;
@@ -58,8 +59,24 @@ export class TreeMap<K, V>
   }
 
   override put(key: K, value: V): V | undefined {
-    this.validateKeyType(key);
-    this.validateValueType(value);
+    this.validateKeyType(
+      key,
+      this.createValidationContext(
+        "put",
+        `key ${formatValidationContextValue(key)}`,
+        key,
+        this.size(),
+      ),
+    );
+    this.validateValueType(
+      value,
+      this.createValidationContext(
+        "put",
+        `value for key ${formatValidationContextValue(key)}`,
+        value,
+        this.size(),
+      ),
+    );
 
     const index = this.findKeyIndex(key);
     if (index >= 0) {

@@ -26,7 +26,15 @@ export class LinkedStack<T> extends AbstractStack<T> implements Stack<T> {
    * @returns true if the element was pushed
    */
   override push(element: T): boolean {
-    this.validateElementType(element);
+    this.validateElementType(
+      element,
+      this.createValidationContext(
+        "push",
+        "stack element",
+        element,
+        this.list.size(),
+      ),
+    );
     this.list.addFirst(element);
     return true;
   }
