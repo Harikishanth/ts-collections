@@ -34,7 +34,8 @@ import { formatValidationContextValue } from "../utils/validation";
  */
 export class HashMap<K, V>
   extends AbstractMap<K, V>
-  implements MapInterface<K, V> {
+  implements MapInterface<K, V>
+{
   private mapEntries: globalThis.Map<K, V>;
 
   constructor(options?: MapTypeValidationOptions<K, V>) {
