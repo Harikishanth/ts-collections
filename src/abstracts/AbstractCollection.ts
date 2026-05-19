@@ -60,7 +60,7 @@ export interface TypeValidationOptions<T> {
    * const list = new ArrayList<number>({ strict: false });
    * list.add(1);          // ✓ OK
    * list.add("text");     // ✓ Silently accepted — runtime type is now mixed
-   * list.get(0) * 2;      // May produce unexpected results at runtime
+   * list.get(1) * 2;      // NaN — "text" * 2 fails silently at runtime
    * ```
    */
   strict?: boolean;
