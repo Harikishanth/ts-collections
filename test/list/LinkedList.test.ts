@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { z } from "zod";
 import { LinkedList } from "../../src/list/LinkedList";
 import { describeList } from "../interfaces/List";
+import { z } from "zod";
 
 /**
  * Test suite for LinkedList implementation
@@ -161,10 +161,10 @@ describe("LinkedList - Runtime Type Safety", () => {
 	});
 
 	it("should reset type inference after clear", () => {
-		const list = new LinkedList<string | number>();
-		list.add(1 as unknown as string | number);
+		const list = new LinkedList<any>();
+		list.add(1);
 		list.clear();
-		list.add("text" as unknown as string | number);
+		list.add("text");
 		expect(list.get(0)).toBe("text");
 	});
 });
