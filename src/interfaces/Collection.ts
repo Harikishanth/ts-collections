@@ -32,7 +32,7 @@ export interface Collection<E> {
 	 * @param elements Collection containing elements to be added to this collection
 	 * @returns true if this collection changed as a result of the call
 	 */
-	addAll(elements: Collection<E>): boolean;
+	addAll(elements: Collection<E> | Iterable<E>): boolean;
 
 	/**
 	 * Removes all of the elements from this collection (optional operation).

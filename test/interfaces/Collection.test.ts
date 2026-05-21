@@ -190,6 +190,16 @@ export function describeCollection(
 				expect(collection.contains(2)).toBe(true);
 			});
 
+			it("should add all elements from an iterable", () => {
+				const result = collection.addAll([1, 2, 3]);
+
+				expect(result).toBe(true);
+				expect(collection.size()).toBe(3);
+				expect(collection.contains(1)).toBe(true);
+				expect(collection.contains(2)).toBe(true);
+				expect(collection.contains(3)).toBe(true);
+			});
+
 			it("should return false when adding empty collection", () => {
 				const other = createCollection();
 				const result = collection.addAll(other);

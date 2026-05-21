@@ -234,19 +234,44 @@ export abstract class AbstractCollection<E> implements Collection<E> {
 	 * Adds all of the elements in the specified collection to this collection.
 	 *
 	 * Default implementation: iterates through elements of the specified collection
-	 * and adds each element.
+	 * or iterable and adds each element.
 	 *
 	 * @returns true if this collection changed as a result of the call
 	 */
-	addAll(elements: Collection<E>): boolean {
+	addAll(elements: Collection<E> | Iterable<E>): boolean {
 		let modified = false;
-		const iterator = elements.iterator();
-		while (iterator.hasNext()) {
-			if (this.add(iterator.next())) {
+		for (const element of this.iterateElements(elements)) {
+			if (this.add(element)) {
 				modified = true;
 			}
 		}
 		return modified;
+	}
+
+	/**
+	 * Determines whether the provided value is a Collection implementation.
+	 */
+	private isCollection(
+		elements: Collection<E> | Iterable<E>
+	): elements is Collection<E> {
+		return typeof (elements as Collection<E>).iterator === "function";
+	}
+
+	/**
+	 * Iterates over collection or iterable elements with a unified code path.
+	 */
+	private *iterateElements(
+		elements: Collection<E> | Iterable<E>
+	): Generator<E, void, undefined> {
+		if (this.isCollection(elements)) {
+			const iterator = elements.iterator();
+			while (iterator.hasNext()) {
+				yield iterator.next();
+			}
+			return;
+		}
+
+		yield* elements;
 	}
 
 	/**
