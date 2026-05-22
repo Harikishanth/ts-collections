@@ -5,6 +5,7 @@ import {
 import type { Iterator } from "../interfaces/Iterator";
 import type { Queue } from "../interfaces/Queue";
 import { compareComparableValues } from "../utils/comparison";
+import { CollectionEmptyError } from "../errors";
 
 export interface PriorityQueueOptions<T> extends TypeValidationOptions<T> {
 	comparator?: (a: T, b: T) => number;
@@ -69,7 +70,10 @@ export class PriorityQueue<T> extends AbstractQueue<T> implements Queue<T> {
 	override element(): T {
 		const value = this.peek();
 		if (value === undefined) {
-			throw new Error("Queue is empty");
+			throw new CollectionEmptyError("element", {
+				collectionType: "PriorityQueue",
+				operation: "element",
+			});
 		}
 		return value;
 	}

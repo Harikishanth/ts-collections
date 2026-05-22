@@ -145,8 +145,23 @@ export {
 	formatValidationError,
 	getSchemaDescription,
 	type SchemaType,
-	type ValidationError,
 	type ValidationIssue,
 	type ValidationResult,
 	validateSafe,
 } from "./utils/validation";
+
+// Error Handling
+export {
+	BaseCollectionError,
+	CollectionEmptyError,
+	ComparatorRequiredError,
+	DuplicateKeyError,
+	IndexOutOfBoundsError,
+	InvalidOperationError,
+	TypeMismatchError,
+	ValidationError,
+	type ErrorContext,
+	type ICollectionError,
+	type IErrorLogger,
+	ConsoleErrorLogger,
+} from "./errors";

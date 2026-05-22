@@ -1,6 +1,7 @@
 import { AbstractQueue } from "../abstracts/AbstractQueue";
 import type { Iterator } from "../interfaces/Iterator";
 import type { Queue } from "../interfaces/Queue";
+import { CollectionEmptyError } from "../errors";
 
 /**
  * A linked list-based Queue implementation.
@@ -106,7 +107,10 @@ export class LinkedQueue<T> extends AbstractQueue<T> implements Queue<T> {
 	 */
 	override element(): T {
 		if (this.head === null) {
-			throw new Error("Queue is empty");
+			throw new CollectionEmptyError("element", {
+				collectionType: "LinkedQueue",
+				operation: "element",
+			});
 		}
 
 		return this.head.value;

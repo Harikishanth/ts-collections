@@ -1,11 +1,13 @@
 import type { ZodSchema } from "zod";
+import { ZodError } from "zod";
 import type { Collection, Iterator } from "../interfaces";
 import {
 	createCollectionValidationError,
 	describeValidationValue,
-	toValidationError,
 	type ValidationContext,
+	toValidationIssues,
 } from "../utils/validation";
+import { ValidationError, TypeMismatchError } from "../errors";
 
 /**
  * Options for runtime type validation in collections.
@@ -326,7 +328,9 @@ export abstract class AbstractCollection<E> implements Collection<E> {
 	 * - No configuration needed! (Just like Java)
 	 *
 	 * @param element The element to validate
-	 * @throws {TypeError} If type validation fails
+	 * @throws {ValidationError} If Zod schema validation fails
+	 * @throws {TypeError} If custom validator fails
+	 * @throws {TypeMismatchError} If type inference fails
 	 */
 	protected validateElementType(
 		element: unknown,
@@ -346,10 +350,18 @@ export abstract class AbstractCollection<E> implements Collection<E> {
 			try {
 				this.schema.parse(element);
 			} catch (error) {
-				if (error instanceof Error) {
-					throw createCollectionValidationError(
-						toValidationError(error),
-						validationContext
+				if (error instanceof ZodError) {
+					const issues = toValidationIssues(error);
+					const message = `${validationContext.collectionType}.${validationContext.operation}() validation failed`;
+					throw new ValidationError(
+						message,
+						issues,
+						{
+							collectionType: validationContext.collectionType,
+							operation: validationContext.operation,
+						},
+						element,
+						error
 					);
 				}
 				throw error;
@@ -377,8 +389,13 @@ export abstract class AbstractCollection<E> implements Collection<E> {
 			// Subsequent elements: must match inferred type
 			const elementType = this.getTypeString(element);
 			if (elementType !== this.inferredType) {
-				throw new TypeError(
-					`${validationContext.collectionType}.${validationContext.operation}() validation failed: Expected ${this.inferredType} for ${validationContext.targetDescription}, but got ${describeValidationValue(element)}`
+				throw new TypeMismatchError(
+					this.inferredType || "unknown",
+					elementType,
+					{
+						collectionType: validationContext.collectionType,
+						operation: validationContext.operation,
+					}
 				);
 			}
 		}

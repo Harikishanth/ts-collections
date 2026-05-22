@@ -19,7 +19,7 @@
     "ultracite": "7.7.0",
     "vitest": "^4.0.17"
   },
-  "name": "ts-collections",
+  "name": "@karelaking/ts-collections",
   "scripts": {
     "build": "tsup",
     "test": "vitest",
@@ -37,7 +37,7 @@
     "fix": "ultracite fix"
   },
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A fully-typed, Java-inspired Collections Framework for TypeScript, providing industry-grade implementations of Lists, Sets, Maps, Queues, and Iterators with strict type safety, predictable behavior, and performance transparency. Designed for education, large-scale applications, and library-level reuse, with clean abstractions, extensible contracts, and tree-shakable ESM builds",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -58,7 +58,7 @@
   ],
   "author": {
     "name": "Karel King",
-    "email": "karelaking@example.com",
+    "email": "karelaking277@gmail.com",
     "url": "https://github.com/Karelaking"
   },
   "repository": {
