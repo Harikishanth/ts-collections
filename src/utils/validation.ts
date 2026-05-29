@@ -72,7 +72,12 @@ function describeValue(value: unknown): string {
 	}
 
 	try {
-		return JSON.stringify(value);
+		return JSON.stringify(value, (key: string, val: unknown) => {
+			if (typeof key === "string" && /password|secret|token|credential|key/i.test(key)) {
+				return "[REDACTED]";
+			}
+			return val;
+		});
 	} catch {
 		return String(value);
 	}
