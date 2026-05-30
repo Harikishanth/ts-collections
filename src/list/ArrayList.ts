@@ -2,13 +2,35 @@ import { AbstractList } from "../abstracts/AbstractList";
 import type { Iterator } from "../interfaces/Iterator";
 import type { List } from "../interfaces/List";
 
+
 /**
- * A simple array-based List implementation using dynamic resizing.
- * Provides O(1) random access and O(n) insertion/deletion at arbitrary positions.
- * Leverages JavaScript's native array resizing for optimal performance.
- * Includes automatic runtime type validation by default (like Java's type-safe collections).
+ * A resizable, ordered list backed by a native array.
  *
- * @template T The type of elements in this list
+ * This list behaves like Java’s `ArrayList`: it stores elements in insertion
+ * order, supports random access by index, and grows as needed when elements
+ * are appended or inserted.
+ *
+ * ### Performance characteristics
+ * - Random access (`get`, `set`): $O(1)$
+ * - Append (`add`): amortized $O(1)$
+ * - Insert/remove at index (`addAt`, `removeAt`): $O(n)$ due to shifting
+ * - Search (`contains`, `indexOf`, `lastIndexOf`): $O(n)$
+ *
+ * ### Internal behavior
+ * - Elements are stored in a private `T[]` named `elements`.
+ * - When runtime type validation is enabled (via `AbstractList` options),
+ *   each added or replaced element is validated before storage.
+ * - Index bounds checks are centralized in a private helper to keep logic
+ *   consistent across methods.
+ * - `subList` produces a snapshot copy, so changes to the original list do
+ *   not affect the returned list.
+ *
+ * ### Error behavior
+ * - Methods that access by index throw when the index is out of range.
+ * - `get`, `set`, and `removeAt` also throw if the stored element is `undefined`.
+ * - Iterator `next()` throws when no elements remain.
+ *
+ * @typeParam T - The element type stored in the list.
  *
  * @example
  * ```typescript

@@ -45,6 +45,21 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "module": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest",
+    "lint": "eslint src test bench eslint.config.js tsup.config.ts vitest.config.ts",
+    "docs": "typedoc",
+    "bench": "pnpm build && node bench/collections.bench.mjs",
+    "prepublishOnly": "pnpm build",
+    "prepare": "node .husky/install.mjs"
+  },
   "keywords": [
     "map",
     "set",
@@ -74,10 +89,13 @@
   "homepage": "https://github.com/Karelaking/ts-collections#readme",
   "packageManager": "pnpm@10.18.1",
   "sideEffects": false,
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0",
-    "pnpm": ">=8.0.0"
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx}": [
+      "eslint --fix"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "files": [
     "dist",
@@ -87,5 +105,26 @@
     "CODE_OF_CONDUCT.md",
     "SECURITY.md"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^25.0.9",
+    "@typescript-eslint/eslint-plugin": "^8.53.0",
+    "@typescript-eslint/parser": "^8.53.0",
+    "eslint": "^9.39.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.6",
+    "prettier": "^3.7.4",
+    "tinybench": "^6.0.0",
+    "tsup": "^8.5.1",
+    "typedoc": "^0.28.16",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17"
+  },
+  "dependencies": {
+    "path": "^0.12.7",
+    "zod": "^4.3.5"
+  }
 }
