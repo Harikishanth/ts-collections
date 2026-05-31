@@ -538,42 +538,6 @@ All data structures document their performance characteristics:
 
 Run benchmarks: `pnpm bench`
 
-## 🐳 Docker
-
-Run the project in consistent, isolated environments with Docker.
-
-### Docker services
-
-- `dev` - development container with source mounts and hot editing support
-- `test` - runs `npm test` in an isolated container
-- `lint` - runs `npm run lint` in an isolated container
-- `build` - runs `npm run build` in an isolated container
-- `prod` - production image using the final build output
-
-### Common commands
-
-```bash
-docker compose run --rm dev
-docker compose run --rm test
-docker compose run --rm lint
-docker compose run --rm build
-
-docker build --target development -t ts-collections:dev .
-docker build --target production -t ts-collections:prod .
-```
-
-### Benefits
-
-- Consistent environment across machines and CI/CD
-- Strong isolation from local machine differences
-- Reproducible development and test workflows
-- Smaller, production-focused runtime images
-
-### Image targets
-
-- `--target development` for local development workflows
-- `--target production` for lean deployable images
-
 ## 📄 License
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
